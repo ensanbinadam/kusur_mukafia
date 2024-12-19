@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة الكسور المكافئة</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            text-align: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            margin: 20px auto;
+            padding: 20px;
+            max-width: 600px;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        .question {
+            font-size: 20px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .fraction-container {
+            display: inline-block;
+            text-align: center;
+            margin: 20px;
+        }
+
+        .fraction {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 24px;
+        }
+
+        .fraction span,
+        .fraction input {
+            display: block;
+            width: 50px;
+            text-align: center;
+        }
+
+        .fraction .line {
+            width: 50px;
+            border-top: 2px solid black;
+            margin: 5px 0;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            font-size: 18px;
+            margin: 5px;
+            width: 70px;
+            text-align: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 20px;
+        }
+
+        .footer {
+            margin-top: 50px;
+            font-size: 16px;
+            color: #666;
+        }
+
+        .score {
+            font-size: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 90%;
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .question {
+                font-size: 18px;
+            }
+
+            .fraction span,
+            .fraction input {
+                width: 40px;
+            }
+
+            .fraction .line {
+                width: 40px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                width: 100%;
+                padding: 5px;
+            }
+
+            h1 {
+                font-size: 18px;
+            }
+
+            .question {
+                font-size: 16px;
+            }
+
+            .fraction span,
+            .fraction input {
+                width: 30px;
+            }
+
+            .fraction .line {
+                width: 30px;
+            }
+
+            button {
+                font-size: 16px;
+                padding: 8px 16px;
+            }
+
+            .result {
+                font-size: 16px;
+            }
+
+            .score {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>لعبة الكسور المكافئة</h1>
+        <div id="question" class="question"></div>
+        <div class="fraction-container">
+            <div class="fraction">
+                <span id="numerator1"></span>
+                <div class="line"></div>
+                <span id="denominator1"></span>
+            </div>
+        </div>
+        <span>=</span>
+        <div class="fraction-container">
+            <div class="fraction">
+                <input type="text" id="numerator2" placeholder="بسط" oninput="convertInputToHindi(this)">
+                <div class="line"></div>
+                <input type="text" id="denominator2" placeholder="مقام" oninput="convertInputToHindi(this)">
+            </div>
+        </div>
+        <br>
+        <button id="check-answer-btn" onclick="checkAnswer()">تحقق من الإجابة</button>
+        <button id="next-question-btn" onclick="generateFraction()">السؤال التالي</button>
+        <button id="end-game-btn" onclick="endGame()">إنهاء اللعبة</button>
+        <button id="restart-game-btn" onclick="restartGame()" style="display:none;">البدء من جديد</button>
+        <div class="result" id="result"></div>
+        <div class="score" id="score">الدرجة: ٠/٠</div>
+    </div>
+    <div class="footer">فكرة قناة فنون الرياضيات ـ إشراف المعلمة/سعاد الغامدي ـ تنفيذ الذكاء الاصطناعي</div>
+
+    <script>
+        let numerator, denominator, multiplier, division;
+        let correctAnswers = 0;
+        let totalQuestions = 0;
+
+        function generateFraction() {
+            do {
+                numerator = Math.floor(Math.random() * 9) + 1;
+                denominator = Math.floor(Math.random() * 9) + 1;
+
+                if (Math.random() > 0.5) {
+                    multiplier = Math.floor(Math.random() * 5) + 2;
+                    division = null;
+                } else {
+                    division = Math.floor(Math.random() * 3) + 2;
+                    multiplier = null;
+                }
+            } while (!isValidFraction(numerator, denominator, multiplier, division));
+
+            if (multiplier) {
+                document.getElementById('question').innerText = `استخدم الضرب بمضاعف ${convertToHindi(multiplier)}`;
+            } else {
+                document.getElementById('question').innerText = `استخدم القسمة على ${convertToHindi(division)}`;
+            }
+
+            document.getElementById('numerator1').innerText = convertToHindi(numerator);
+            document.getElementById('denominator1').innerText = convertToHindi(denominator);
+            document.getElementById('result').innerText = '';
+            document.getElementById('numerator2').value = '';
+            document.getElementById('denominator2').value = '';
+        }
+
+        function isValidFraction(numerator, denominator, multiplier, division) {
+            if (multiplier) {
+                return true;
+            } else if (division) {
+                return numerator % division === 0 && denominator % division === 0;
+            }
+            return false;
+        }
+
+        function convertInputToHindi(input) {
+            // Convert the input value to Hindi digits
+            input.value = input.value.replace(/\d/g, d => convertToHindi(d));
+        }
+
+        function validateInput(input) {
+            // Ensure the input is a non-negative integer
+            input.value = input.value.replace(/[^0-9]/g, '');
+        }
+
+        function checkAnswer() {
+            const userNumerator = parseInt(convertToEnglish(document.getElementById('numerator2').value));
+            const userDenominator = parseInt(convertToEnglish(document.getElementById('denominator2').value));
+
+            let correctNumerator, correctDenominator;
+
+            if (multiplier) {
+                correctNumerator = numerator * multiplier;
+                correctDenominator = denominator * multiplier;
+            } else if (division) {
+                correctNumerator = numerator / division;
+                correctDenominator = denominator / division;
+            }
+
+            totalQuestions++;
+
+            if (userNumerator === correctNumerator && userDenominator === correctDenominator) {
+                correctAnswers++;
+                document.getElementById('result').innerText = 'إجابة صحيحة!';
+                document.getElementById('result').style.color = 'green';
+            } else {
+                document.getElementById('result').innerText = `إجابة خاطئة. الإجابة الصحيحة هي ${convertToHindi(correctNumerator)} بسط ${convertToHindi(correctDenominator)} مقام`;
+                document.getElementById('result').style.color = 'red';
+            }
+
+            document.getElementById('score').innerText = `الدرجة: ${convertToHindi(totalQuestions)}/${convertToHindi(correctAnswers)}`;
+
+        }
+        
+        function convertToHindi(num) {
+            const hindiNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+            return num.toString().split('').map(digit => hindiNumbers[digit]).join('');
+        }
+
+        function convertToEnglish(num) {
+            const englishNumbers = { '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4', '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9' };
+            return num.split('').map(digit => englishNumbers[digit]).join('');
+        }
+
+        function endGame() {
+            document.getElementById('question').innerText = '';
+            document.getElementById('numerator1').innerText = '';
+            document.getElementById('denominator1').innerText = '';
+            document.getElementById('numerator2').value = '';
+            document.getElementById('denominator2').value = '';
+            document.getElementById('result').innerText = '';
+            document.getElementById('score').innerText = 'الدرجة: ٠/٠';
+            correctAnswers = 0;
+            totalQuestions = 0;
+
+            // Hide buttons except restart button
+            document.getElementById('check-answer-btn').style.display = 'none';
+            document.getElementById('next-question-btn').style.display = 'none';
+            document.getElementById('end-game-btn').style.display = 'none';
+            document.getElementById('restart-game-btn').style.display = 'inline-block';
+        }
+
+        function restartGame() {
+            correctAnswers = 0;
+            totalQuestions = 0;
+            generateFraction();
+            document.getElementById('score').innerText = 'الدرجة: ٠/٠';
+
+            // Show buttons
+            document.getElementById('check-answer-btn').style.display = 'inline-block';
+            document.getElementById('next-question-btn').style.display = 'inline-block';
+            document.getElementById('end-game-btn').style.display = 'inline-block';
+            document.getElementById('restart-game-btn').style.display = 'none';
+        }
+
+        window.onload = generateFraction;
+    </script>
+</body>
+
+</html>
